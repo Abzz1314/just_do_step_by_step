@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>先做一步试试</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="phone-shell" aria-label="先做一步试试">
+      <section class="app-screen">
+        <header class="top-bar" aria-label="工具栏">
+          <button class="icon-button" id="settingsButton" type="button" aria-label="设置">
+            <span class="icon gear" aria-hidden="true"></span>
+          </button>
+          <button class="icon-button" id="statsButton" type="button" aria-label="状态">
+            <span class="icon chart" aria-hidden="true"></span>
+          </button>
+          <button class="icon-button" id="shareButton" type="button" aria-label="复制当前步骤">
+            <span class="icon share" aria-hidden="true"></span>
+          </button>
+        </header>
+
+        <section class="hero" aria-label="当前状态">
+          <div class="coach-tip" id="coachTip">点击我，查看「我的状态」</div>
+          <button class="coach-card" id="coachCard" type="button" aria-label="查看我的状态">
+            <span class="spark spark-a"></span>
+            <span class="spark spark-b"></span>
+            <span class="mascot" aria-hidden="true">
+              <span class="eye left"></span>
+              <span class="eye right"></span>
+              <span class="smile"></span>
+            </span>
+          </button>
+        </section>
+
+        <section class="goal-entry" aria-label="输入想做的事">
+          <div class="input-wrap">
+            <input id="goalInput" type="text" autocomplete="off" aria-label="输入你想做的事" placeholder="输入你想做的事" />
+            <button class="mic-button" id="voiceButton" type="button" aria-label="语音输入占位">
+              <span class="icon mic" aria-hidden="true"></span>
+            </button>
+          </div>
+          <button class="pill-button" id="compareButton" type="button">行为对照</button>
+        </section>
+
+        <section class="step-panel" id="stepPanel" aria-live="polite">
+          <p class="eyebrow" id="panelEyebrow">还没有开始</p>
+          <h1 id="stepTitle">先把脑子里的大事放下来</h1>
+          <p id="stepDetail">输入一个目标，我会帮你拆成轻到可以动手的小步骤。</p>
+          <div class="progress-wrap" aria-label="完成进度">
+            <div class="progress-track">
+              <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <span id="progressText">0/0</span>
+          </div>
+        </section>
+
+        <footer class="action-bar">
+          <button class="primary-button" id="mainAction" type="button">先做一步试试</button>
+          <button class="secondary-button" id="regenerateButton" type="button" hidden>换一组更小的步骤</button>
+        </footer>
+      </section>
+    </main>
+
+    <dialog class="modal" id="settingsModal">
+      <form method="dialog" class="modal-card">
+        <header class="modal-header">
+          <h2>DeepSeek 设置</h2>
+          <button class="small-icon-button" type="submit" aria-label="关闭">×</button>
+        </header>
+        <label class="field">
+          <span>API Key</span>
+          <input id="apiKeyInput" type="password" placeholder="sk-..." autocomplete="off" />
+        </label>
+        <label class="field">
+          <span>模型</span>
+          <select id="modelSelect">
+            <option value="deepseek-chat">deepseek-chat</option>
+            <option value="deepseek-reasoner">deepseek-reasoner</option>
+          </select>
+        </label>
+        <p class="modal-note">没有填写时会使用本地演示拆解。正式产品建议通过后端代理调用，避免密钥暴露。</p>
+        <p class="modal-note">当前纯静态版本会把 Key 只保存在你的浏览器本地，并由你的浏览器直接请求 DeepSeek。</p>
+        <div class="modal-actions">
+          <button class="secondary-button compact subtle" id="clearSettingsButton" type="button">清除 Key</button>
+          <button class="primary-button compact" id="saveSettingsButton" type="button">保存</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="modal" id="statsModal">
+      <form method="dialog" class="modal-card">
+        <header class="modal-header">
+          <h2>我的状态</h2>
+          <button class="small-icon-button" type="submit" aria-label="关闭">×</button>
+        </header>
+        <div class="stats-grid">
+          <div>
+            <strong id="doneCount">0</strong>
+            <span>已完成</span>
+          </div>
+          <div>
+            <strong id="streakCount">0</strong>
+            <span>连续推进</span>
+          </div>
+        </div>
+        <p class="modal-note" id="statusSummary">你还没有开始，第一步会被设计得很轻。</p>
+      </form>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
