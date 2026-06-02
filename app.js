@@ -18,6 +18,21 @@ const fallbackOpeners = [
   "设置一个 8 分钟计时器，只做这一步，不评价成果。"
 ];
 
+const stepFeedbacks = [
+  { title: "向前了一点", detail: "下一步已经在等你了。" },
+  { title: "这一步收好了", detail: "不用着急，继续看眼前的小动作。" },
+  { title: "进度正在发生", detail: "你已经把事情往前推了一格。" },
+  { title: "很好，继续轻一点", detail: "下一步依然只需要一点点力气。" },
+  { title: "一个小动作完成", detail: "保持这个节奏就好。" },
+  { title: "已经离开起点", detail: "现在只需要处理下一小块。" }
+];
+
+const roundFeedbacks = [
+  { title: "这一轮完成了", detail: "你已经把大事变成了真实进展。" },
+  { title: "今天有了落点", detail: "这组小步骤已经全部走完。" },
+  { title: "做到了", detail: "不是一下做完，而是一步一步完成。" }
+];
+
 const state = loadJson(STORAGE_KEY, defaultState);
 const settings = loadJson(SETTINGS_KEY, {
   apiKey: "",
@@ -54,7 +69,10 @@ const els = {
   doneCount: document.querySelector("#doneCount"),
   streakCount: document.querySelector("#streakCount"),
   statusSummary: document.querySelector("#statusSummary"),
-  toast: document.querySelector("#toast")
+  toast: document.querySelector("#toast"),
+  toastIcon: document.querySelector("#toastIcon"),
+  toastTitle: document.querySelector("#toastTitle"),
+  toastDetail: document.querySelector("#toastDetail")
 };
 
 els.goalInput.value = state.goal;
@@ -108,12 +126,20 @@ async function createPlan(forceRegenerate) {
     state.currentIndex = 0;
     state.history = forceRegenerate ? state.history : [];
     state.streak = forceRegenerate ? state.streak : 0;
-    showToast(settings.apiKey ? "DeepSeek 已拆好，先做最轻的一步。" : "演示模式已拆好，先动起来。");
+    showToast({
+      title: settings.apiKey ? "步骤已经准备好" : "演示步骤已准备好",
+      detail: "先做最轻的那一步。",
+      tone: "success"
+    });
   } catch (error) {
     console.warn(error);
     state.steps = buildLocalPlan(goal);
     state.currentIndex = 0;
-    showToast("DeepSeek 暂时没连上，已切到本地演示。");
+    showToast({
+      title: "已切到本地演示",
+      detail: "DeepSeek 暂时没连上，仍然可以继续。",
+      tone: "warning"
+    });
   } finally {
     setLoading(false);
     saveState();
@@ -221,9 +247,9 @@ function completeCurrentStep() {
   playCompletionRitual();
 
   if (state.currentIndex >= state.steps.length) {
-    showToast("这组步骤完成了，已经不是零进展了。");
+    showToast({ ...pickFeedback(roundFeedbacks), tone: "success" });
   } else {
-    showToast("很好，下一步已经变小了。");
+    showToast({ ...pickFeedback(stepFeedbacks), tone: "success" });
   }
 
   saveState();
@@ -385,12 +411,24 @@ function setLoading(isLoading) {
 }
 
 function showToast(message) {
-  els.toast.textContent = message;
+  const content = typeof message === "string"
+    ? { title: message, detail: "", tone: "info" }
+    : { detail: "", tone: "info", ...message };
+
+  els.toast.className = `toast ${content.tone}`;
+  els.toastTitle.textContent = content.title;
+  els.toastDetail.textContent = content.detail;
+  els.toastDetail.hidden = !content.detail;
+  els.toastIcon.textContent = content.tone === "success" ? "✓" : content.tone === "warning" ? "!" : "i";
   els.toast.classList.add("show");
   clearTimeout(showToast.timer);
   showToast.timer = setTimeout(() => {
     els.toast.classList.remove("show");
   }, 2200);
+}
+
+function pickFeedback(options) {
+  return options[Math.floor(Math.random() * options.length)];
 }
 
 function saveState() {

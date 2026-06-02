@@ -121,7 +121,14 @@
       </form>
     </dialog>
 
-    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <div class="toast" id="toast" role="status" aria-live="polite">
+      <span class="toast-icon" id="toastIcon" aria-hidden="true"></span>
+      <span class="toast-copy">
+        <strong id="toastTitle"></strong>
+        <small id="toastDetail"></small>
+      </span>
+      <span class="toast-timer" aria-hidden="true"></span>
+    </div>
     <div class="paper-burst" id="paperBurst" aria-hidden="true"></div>
 
     <script src="./app.js?v=2"></script>
