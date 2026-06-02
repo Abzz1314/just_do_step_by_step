@@ -4,33 +4,43 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>先做一步试试</title>
-    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./styles.css?v=2" />
   </head>
   <body>
     <main class="phone-shell" aria-label="先做一步试试">
       <section class="app-screen">
-        <header class="top-bar" aria-label="工具栏">
-          <button class="icon-button" id="settingsButton" type="button" aria-label="设置">
-            <span class="icon gear" aria-hidden="true"></span>
-          </button>
-          <button class="icon-button" id="statsButton" type="button" aria-label="状态">
-            <span class="icon chart" aria-hidden="true"></span>
-          </button>
-          <button class="icon-button" id="shareButton" type="button" aria-label="复制当前步骤">
-            <span class="icon share" aria-hidden="true"></span>
-          </button>
+        <header class="top-bar">
+          <div class="brand">
+            <span class="brand-mark" aria-hidden="true">1</span>
+            <span>
+              <strong>一步</strong>
+              <small>从现在开始</small>
+            </span>
+          </div>
+          <nav class="toolbar-actions" aria-label="工具栏">
+            <button class="icon-button" id="statsButton" type="button" aria-label="状态">
+              <span class="icon chart" aria-hidden="true"></span>
+            </button>
+            <button class="icon-button" id="shareButton" type="button" aria-label="复制当前步骤">
+              <span class="icon share" aria-hidden="true"></span>
+            </button>
+            <button class="icon-button" id="settingsButton" type="button" aria-label="设置">
+              <span class="icon gear" aria-hidden="true"></span>
+            </button>
+          </nav>
         </header>
 
         <section class="hero" aria-label="当前状态">
-          <div class="coach-tip" id="coachTip">点击我，查看「我的状态」</div>
           <button class="coach-card" id="coachCard" type="button" aria-label="查看我的状态">
-            <span class="spark spark-a"></span>
-            <span class="spark spark-b"></span>
-            <span class="mascot" aria-hidden="true">
-              <span class="eye left"></span>
-              <span class="eye right"></span>
-              <span class="smile"></span>
+            <span class="coach-copy">
+              <small>今天的行动轨迹</small>
+              <strong id="coachTip">点击查看「我的状态」</strong>
             </span>
+            <span class="trail-map" aria-hidden="true">
+              <span class="trail-line"><span id="trailProgress"></span></span>
+              <span class="trail-dots" id="trailDots"></span>
+            </span>
+            <span class="step-stamp" id="stepStamp" aria-hidden="true">GO</span>
           </button>
         </section>
 
@@ -41,18 +51,20 @@
               <span class="icon mic" aria-hidden="true"></span>
             </button>
           </div>
-          <button class="pill-button" id="compareButton" type="button">行为对照</button>
+          <button class="pill-button" id="compareButton" type="button">看看此刻的阻力</button>
         </section>
 
         <section class="step-panel" id="stepPanel" aria-live="polite">
-          <p class="eyebrow" id="panelEyebrow">还没有开始</p>
+          <div class="step-meta">
+            <p class="eyebrow" id="panelEyebrow">还没有开始</p>
+            <span id="progressText">0/0</span>
+          </div>
           <h1 id="stepTitle">先把脑子里的大事放下来</h1>
           <p id="stepDetail">输入一个目标，我会帮你拆成轻到可以动手的小步骤。</p>
           <div class="progress-wrap" aria-label="完成进度">
             <div class="progress-track">
               <div class="progress-fill" id="progressFill"></div>
             </div>
-            <span id="progressText">0/0</span>
           </div>
         </section>
 
@@ -110,7 +122,8 @@
     </dialog>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <div class="paper-burst" id="paperBurst" aria-hidden="true"></div>
 
-    <script src="./app.js"></script>
+    <script src="./app.js?v=2"></script>
   </body>
 </html>

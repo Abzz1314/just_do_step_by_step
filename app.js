@@ -34,8 +34,12 @@ const els = {
   panelEyebrow: document.querySelector("#panelEyebrow"),
   progressFill: document.querySelector("#progressFill"),
   progressText: document.querySelector("#progressText"),
+  trailProgress: document.querySelector("#trailProgress"),
+  trailDots: document.querySelector("#trailDots"),
   coachTip: document.querySelector("#coachTip"),
   coachCard: document.querySelector("#coachCard"),
+  stepStamp: document.querySelector("#stepStamp"),
+  paperBurst: document.querySelector("#paperBurst"),
   compareButton: document.querySelector("#compareButton"),
   settingsButton: document.querySelector("#settingsButton"),
   statsButton: document.querySelector("#statsButton"),
@@ -132,7 +136,7 @@ async function askDeepSeekFromBrowser(goal) {
         {
           role: "system",
           content:
-            "你是一个温柔但具体的行动拆解助手。把复杂目标拆成 4 到 6 个非常小、可在 5 到 20 分钟内开始的步骤。输出 JSON：{\"steps\":[{\"title\":\"...\",\"detail\":\"...\"}]}"
+            "你是一个温柔但具体的行动拆解助手。根据目标的复杂度，自行决定拆成 3 到 8 个非常小、可在 5 到 20 分钟内开始的步骤。简单任务不要过度拆解，复杂任务可以拆得更细。输出 JSON：{\"steps\":[{\"title\":\"...\",\"detail\":\"...\"}]}"
         },
         {
           role: "user",
@@ -155,7 +159,7 @@ async function askDeepSeekFromBrowser(goal) {
 function buildLocalPlan(goal) {
   const seed = Math.abs(hashCode(goal));
   const opener = fallbackOpeners[seed % fallbackOpeners.length];
-  return [
+  const plan = [
     {
       title: "把目标写成一句话",
       detail: opener
@@ -175,8 +179,22 @@ function buildLocalPlan(goal) {
     {
       title: "留下下一步钩子",
       detail: "停止前写下下一次打开时要做的第一件事。"
+    },
+    {
+      title: "补一个最小反馈",
+      detail: "快速看一眼成果，记下一个需要调整的小地方。"
+    },
+    {
+      title: "做一次轻量完善",
+      detail: "只处理刚才记录的一个小地方，不扩展范围。"
+    },
+    {
+      title: "保存今天的成果",
+      detail: "把当前版本保存好，为下一次继续留下清晰入口。"
     }
   ];
+  const stepCount = Math.min(8, Math.max(3, 3 + Math.floor(goal.length / 8)));
+  return plan.slice(0, stepCount);
 }
 
 function normalizeSteps(steps) {
@@ -186,7 +204,7 @@ function normalizeSteps(steps) {
       title: String(step.title || `第 ${index + 1} 步`).slice(0, 36),
       detail: String(step.detail || "做一个很小、能马上开始的动作。").slice(0, 120)
     }))
-    .slice(0, 6);
+    .slice(0, 8);
 }
 
 function completeCurrentStep() {
@@ -200,6 +218,7 @@ function completeCurrentStep() {
   state.currentIndex += 1;
   state.completedTotal += 1;
   state.streak += 1;
+  playCompletionRitual();
 
   if (state.currentIndex >= state.steps.length) {
     showToast("这组步骤完成了，已经不是零进展了。");
@@ -219,9 +238,11 @@ function render() {
 
   els.progressFill.style.width = `${percent}%`;
   els.progressText.textContent = `${done}/${total}`;
+  els.trailProgress.style.width = `${percent}%`;
   els.doneCount.textContent = state.completedTotal;
   els.streakCount.textContent = state.streak;
   els.regenerateButton.hidden = !total || done >= total;
+  renderRoute(done, total);
 
   if (!total) {
     els.panelEyebrow.textContent = "还没有开始";
@@ -229,6 +250,7 @@ function render() {
     els.stepDetail.textContent = "输入一个目标，我会帮你拆成轻到可以动手的小步骤。";
     els.mainAction.textContent = "先做一步试试";
     els.coachTip.textContent = "点击我，查看「我的状态」";
+    els.stepStamp.textContent = "GO";
     els.statusSummary.textContent = "你还没有开始，第一步会被设计得很轻。";
     return;
   }
@@ -239,6 +261,7 @@ function render() {
     els.stepDetail.textContent = "可以换一组更小的步骤，或者把刚才的成果继续往前推一点点。";
     els.mainAction.textContent = "再拆一个目标";
     els.coachTip.textContent = "你刚刚完成了一轮";
+    els.stepStamp.textContent = "YES";
     els.statusSummary.textContent = `你围绕「${state.goal}」完成了 ${total} 个小步骤。`;
     return;
   }
@@ -248,7 +271,61 @@ function render() {
   els.stepDetail.textContent = current.detail;
   els.mainAction.textContent = done === 0 ? "完成这一步" : "我做完了，下一步";
   els.coachTip.textContent = done ? `已经推进 ${done} 步` : "先做眼前这一小步";
+  els.stepStamp.textContent = done ? `${done}` : "GO";
   els.statusSummary.textContent = `当前目标是「${state.goal}」，正在做第 ${done + 1} 步。`;
+}
+
+function renderRoute(done, total) {
+  const progress = total ? done / total : 0;
+  const visibleTotal = total || 4;
+
+  if (els.trailDots.childElementCount !== visibleTotal) {
+    els.trailDots.replaceChildren();
+    for (let index = 0; index < visibleTotal; index += 1) {
+      const dot = document.createElement("span");
+      dot.className = "trail-dot";
+      els.trailDots.appendChild(dot);
+    }
+  }
+
+  [...els.trailDots.children].forEach((dot, index) => {
+    const dotProgress = index / Math.max(visibleTotal - 1, 1);
+    dot.classList.toggle("is-done", total > 0 && progress >= dotProgress);
+    dot.classList.toggle("is-next", total > 0 && progress < dotProgress && progress >= dotProgress - 1 / visibleTotal);
+  });
+}
+
+function playCompletionRitual() {
+  els.coachCard.classList.remove("stamp-hit");
+  els.stepStamp.classList.remove("stamp-drop");
+  void els.coachCard.offsetWidth;
+  els.coachCard.classList.add("stamp-hit");
+  els.stepStamp.classList.add("stamp-drop");
+  createPaperBurst();
+
+  setTimeout(() => {
+    els.coachCard.classList.remove("stamp-hit");
+    els.stepStamp.classList.remove("stamp-drop");
+  }, 720);
+}
+
+function createPaperBurst() {
+  const colors = ["#e96b52", "#f5c04b", "#285e52", "#d6d0f0", "#b9ddd2"];
+  els.paperBurst.replaceChildren();
+
+  for (let index = 0; index < 18; index += 1) {
+    const paper = document.createElement("i");
+    paper.style.setProperty("--x", `${(index - 8.5) * 13}px`);
+    paper.style.setProperty("--r", `${(index % 2 ? 1 : -1) * (45 + index * 13)}deg`);
+    paper.style.setProperty("--delay", `${(index % 4) * 28}ms`);
+    paper.style.background = colors[index % colors.length];
+    els.paperBurst.appendChild(paper);
+  }
+
+  els.paperBurst.classList.remove("show");
+  void els.paperBurst.offsetWidth;
+  els.paperBurst.classList.add("show");
+  setTimeout(() => els.paperBurst.classList.remove("show"), 900);
 }
 
 function showBehaviorMirror() {
